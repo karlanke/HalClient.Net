@@ -14,12 +14,12 @@ namespace HalClient.Net.Parser
 				throw new ArgumentNullException(nameof(json));
 
 			using (var stringReader = new StringReader(json))
-			using (var jsonReader = new JsonTextReader(stringReader){ DateParseHandling = DateParseHandling.None })
+			using (var jsonReader = new JsonTextReader(stringReader) { DateParseHandling = DateParseHandling.None })
 			{
 				var obj = JObject.Load(jsonReader);
 				var resource = ParseRootResourceObject(obj);
-				
-				return resource;	
+
+				return resource;
 			}
 		}
 
@@ -53,7 +53,7 @@ namespace HalClient.Net.Parser
 
 				if (inner.Value.Type == JTokenType.Object)
 				{
-					var value = (JObject) inner.Value;
+					var value = (JObject)inner.Value;
 
 					switch (inner.Name)
 					{
@@ -89,7 +89,7 @@ namespace HalClient.Net.Parser
 
 		private static LinkObject ParseLinkObject(JObject outer, string rel)
 		{
-			var link = new LinkObject {Rel = rel};
+			var link = new LinkObject { Rel = rel };
 			string href = null;
 
 			foreach (var inner in outer.Properties())
@@ -150,7 +150,19 @@ namespace HalClient.Net.Parser
 					foreach (var child in inner.Value.Children<JObject>())
 						yield return factory(child, rel);
 				else
-					yield return factory((JObject) inner.Value, rel);
+				{
+
+					T result = default(T);
+					try
+					{
+						result = factory((JObject)inner.Value, rel);
+					}
+					catch (InvalidCastException)
+					{
+						continue;
+					}
+					yield return result;
+				}
 			}
 		}
 	}
